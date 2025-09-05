@@ -3,8 +3,28 @@
 #include <unistd.h>
 #include <string.h>
 
+int lineread();
+
+enum {stdIn, stdOut, stdErr}; // fds
+enum {MLEN = 1024}; // max length of a line
+
+static char line[MLEN];
+
 int main(int argc, char *argv[]) {
-	printf("Hello world\n");
+
+	// stdin read loop
+	while (lineread()) {
+		printf("%s\n", line);
+	}
 	return 0;
 }
 
+// read into line, return number of characters read
+int lineread() {
+	int n = read(stdIn, line, MLEN);
+	// bounds checking
+	if (n >= MLEN)
+		return 0;
+	line[n-1] = '\0'; // strip newline
+	return n-1; // return last index, not length
+}
