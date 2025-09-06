@@ -3,3 +3,5 @@ Toy shell project
 * Interpretter
 * Pipes
 * Redirection
+## Credits
+Name: Harshith

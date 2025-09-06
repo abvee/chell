@@ -28,29 +28,44 @@ int main(int argc, char *argv[]) {
 
 	// stdin read loop
 	while (lineread()) {
+
 		// first token is the root token
 		// TODO: This should reset when we find a pipe
 		tok(root_command);
+		int toki = 1; // token counter
 
 		switch (fork()) {
+			case -1: // this should never happen
+				fprintf(stderr, "fork failed, abort shell\n");
+				return 1;
+
 			case 0: // child
 				// the rest of the arguments are pointers to args
 				// build the arguments
 
-				execlp(root_command, root_command, NULL); // TODO: replace with execv
+				// root_command already pointed in args[0]
+				for (; toki < MARGS && tok(args[toki]); toki++);
+				// explicitly make NULL
+				args[toki] = NULL;
+				
+				int err = execvp(root_command, args);
 
 				// it's an error if we get here
 				fprintf(stderr, "Command not found\n");
+				fflush(stderr);
+				// return to stop forking
+				return err;
 
-			default:
+			default: // parent
 				wait(&exit_val);
+				// we now reset the null value in arguments
+				args[toki] = (char *)args_buf[toki];
 		}
 		// reset the parser back to initial state, so new lines are not reading
 		// from the end of old lines
 		reset();
 
 		// TODO: make the prompt a bit more dynamic, so it shows exit values
-		// print("> ", ret_val);
 		print("> ");
 	}
 	return 0;

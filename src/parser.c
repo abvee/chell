@@ -33,3 +33,8 @@ int tok(char *buf) {
 void reset() {
 	li = 0; 
 }
+
+// debug
+void _printline() {
+	printf("%s|%d\n", line, li);
+}
