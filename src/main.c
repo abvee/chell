@@ -6,7 +6,7 @@
 #include "constants.h"
 #include "parser.c"
 
-int prompt(int exit_value, const char* const s);
+int prompt(int exit_value);
 void pipe_init();
 void pipe_reset();
 
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 	pipe_init();
 
 	// TODO: don't output this when you're running a shell script
-	prompt(0, prompt_str);
+	prompt(0);
 
 	char token[MLEN] = {0}; // general purpose token
 	// stdin read loop
@@ -70,37 +70,48 @@ int main(int argc, char *argv[]) {
 		reset();
 
 		// TODO: make the prompt a bit more dynamic, so it shows exit values
-		prompt(exit_val, prompt_str);
+		prompt(exit_val);
 	}
 	return 0;
 }
 
 // unbuffered print
-inline int prompt(int exit_val, const char* const s) {
+inline int prompt(int exit_val) {
 	char buf[MLEN] = {0};
 	int i = 0;
+
+	// TODO: hardcode the initial prompt
+	// copy the before prompt
+	for (int p = 0; buf[i] = prompt_str_before[p]; p++)
+		i++;
 
 	// exit value of 0 is success, so don't parse 0
 	if (exit_val) {
 
-		while (exit_val % 10 != 0) {
-			buf[i++] = exit_val % 10 + '0';
+		char num[4] = {0}; // max number can be 3 digits
+		int numi = 0;
+
+		for (; exit_val % 10 != 0; numi++) {
+			num[numi] = exit_val % 10 + '0';
 			exit_val /= 10;
 		}
 
 		int tmp;
 		// reverse the array
-		for (int k = 0; k < i / 2; k++) {
-			tmp = buf[k];
-			buf[k] = buf[i - k - 1];
-			buf[i - k - 1] = tmp;
+		for (int k = 0; k < numi / 2; k++) {
+			tmp = num[k];
+			num[k] = num[numi - k - 1];
+			num[numi - k - 1] = tmp;
 		}
-		buf[i++] = ' ';
+		
+		// copy return value
+		for (int p = 0; buf[i] = num[p]; p++)
+			i++;
 	}
 
-	// copy s
-	int j = 0;
-	while (buf[i++] = s[j++]);
+	// copy the after prompt
+	for (int p = 0; buf[i] = prompt_str_after[p]; p++)
+		i++;
 
 	return write(stdOut, buf, i);
 }
