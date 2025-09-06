@@ -35,14 +35,20 @@ int main(int argc, char *argv[]) {
 		switch (fork()) {
 			case 0: // child
 				// the rest of the arguments are pointers to args
+				// build the arguments
+
 				execlp(root_command, root_command, NULL); // TODO: replace with execv
 
 				// it's an error if we get here
-				fprintf(stderr, "Command not found");
+				fprintf(stderr, "Command not found\n");
 
 			default:
 				wait(&exit_val);
 		}
+		// reset the parser back to initial state, so new lines are not reading
+		// from the end of old lines
+		reset();
+
 		// TODO: make the prompt a bit more dynamic, so it shows exit values
 		// print("> ", ret_val);
 		print("> ");

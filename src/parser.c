@@ -19,7 +19,7 @@ int lineread() {
 
 // NOTE: we don't handle newlines here. Assume line doesn't have a new line
 int tok(char *buf) {
-	int bufi = 0; // indexes
+	int bufi = 0; // buffer index
 	while (line[li] && (line[li] == ' ' || line[li]  == '\t'))
 		li++;
 
@@ -28,4 +28,8 @@ int tok(char *buf) {
 
 	buf[bufi] = '\0'; // account for the whitespace
 	return bufi;
+}
+
+void reset() {
+	li = 0; 
 }
