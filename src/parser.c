@@ -29,6 +29,9 @@ int tok(char *buf) {
 	buf[bufi] = '\0'; // account for the whitespace
 	return bufi;
 }
+// TODO: do something else with this tokenizer that does better than whatever
+// this thing is. We're just returning words, so `ls>file` doesn't work, it has
+// to be `ls > file`
 
 void reset() {
 	li = 0; 

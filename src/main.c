@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
 		args[i] = (char *)(args_buf + i);
 	// NOTE: this is basically a long way around doing malloc
 
+	pipe_init();
 	// TODO: don't output this when you're running a shell script
 	prompt(0);
 
@@ -50,6 +51,11 @@ int main(int argc, char *argv[]) {
 
 					toki--; // don't include redirection
 					break;
+				case '<':
+					tok(token);
+					stdin_redir(token);
+					toki--;
+					break;
 			}
 		}
 		args[toki] = NULL;
@@ -75,9 +81,7 @@ int main(int argc, char *argv[]) {
 		// reset the parser back to initial state, so new lines are not reading
 		// from the end of old lines
 		reset();
-
-		// TODO: make the prompt a bit more dynamic, so it shows exit values
-		pipe_reset();
+		pipe_reset(); // what, why this no work ?
 		prompt(exit_val);
 	}
 	return 0;
