@@ -19,10 +19,10 @@ void pipe_reset() {
 }
 
 // open files for redirection
-void stdout_redir(const char* const file) {
+void stdout_redir(const char* const file, bool append) {
 	if (stdout_openfd) close(stdout_openfd);
 
-	stdout_openfd = creat(file, fMode);
+	stdout_openfd = open(file, O_WRONLY|O_CREAT|(append?O_APPEND:O_TRUNC), fMode);
 	if (stdout_openfd < 0) return;
 
 	dup2(stdout_openfd, stdOut);

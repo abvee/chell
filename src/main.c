@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 	int exit_val = 0; // return value of the previous command
 	char *args[MARGS] = {root_command, NULL};
-	// set every pointer in args to the args_buf. 
+	// set every pointer in args to the args_buf.
 	for (int i = 1; i < MARGS; i++)
 		args[i] = (char *)(args_buf + i);
 	// NOTE: this is basically a long way around doing malloc
@@ -29,7 +29,10 @@ int main(int argc, char *argv[]) {
 	// stdin read loop
 	while (true) {
 
-		if(!lineread()) continue; // hitting enter just resets here
+		if(!lineread()) { // hitting enter just resets here
+			prompt(0);
+			continue;
+		}
 
 		// first token has to be a command
 		tok(root_command);
@@ -41,14 +44,16 @@ int main(int argc, char *argv[]) {
 			switch (args[toki][0]) {
 				case '>':
 					tok(token); // next token is file name
-					printf("%s\n", token);
-					stdout_redir(token);
+
+					if (args[toki][1] == '>') stdout_redir(token, true);
+					else stdout_redir(token, false);
+
 					toki--; // don't include redirection
 					break;
 			}
 		}
 		args[toki] = NULL;
-				
+
 		switch (fork()) {
 			case -1:
 				fprintf(stderr, "fork failed, abort shell\n");
@@ -106,7 +111,7 @@ inline int prompt(int exit_val) {
 			num[k] = num[numi - k - 1];
 			num[numi - k - 1] = tmp;
 		}
-		
+
 		// copy return value
 		for (int p = 0; buf[i] = num[p]; p++)
 			i++;
