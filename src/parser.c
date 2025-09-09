@@ -33,7 +33,7 @@ int tok(char *buf) {
 // this thing is. We're just returning words, so `ls>file` doesn't work, it has
 // to be `ls > file`
 
-void reset() {
+void parser_reset() {
 	li = 0; 
 }
 

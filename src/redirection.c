@@ -3,7 +3,7 @@
 #include "constants.h"
 
 static int backup_fds[3];
-void pipe_init() {
+void redir_init() {
 	backup_fds[stdIn] = dup(stdIn);
 	backup_fds[stdOut] = dup(stdOut);
 	backup_fds[stdErr] = dup(stdErr);
@@ -12,8 +12,12 @@ void pipe_init() {
 static int stdout_openfd;
 static int stdin_openfd;
 
+// we atmost need 2 pipes
+static int pipes[2][2];
+static int pipei; // know which pipe we're working with
+
 // make all fds original again
-void pipe_reset() {
+void redir_reset(bool pipe_flag) {
 	int err;
 	// stdout reset
 	if (stdout_openfd) {
@@ -37,6 +41,12 @@ void pipe_reset() {
 		}
 	}
 
+	// close the write end of the pipe if we're in one
+	if (pipe_flag) {
+		dup2(backup_fds[stdOut], stdOut);
+		close(pipes[pipei][1]);
+	}
+	dup2(backup_fds[stdIn], stdIn);
 }
 
 // open files for redirection
@@ -61,4 +71,19 @@ void stdin_redir(const char* const file) {
 	}
 
 	dup2(stdin_openfd, stdIn);
+}
+
+void pipe_create(void) {
+	// clear the previous pipe
+	// shift the pipe to a new pipe
+	pipei = ~pipei & 1;
+
+	pipe(pipes[pipei]);
+
+	// set write end
+	dup2(pipes[pipei][1], stdOut);
+}
+
+void pipe_read(void) {
+	dup2(pipes[pipei][0], stdIn);
 }

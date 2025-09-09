@@ -22,7 +22,8 @@ int main(int argc, char *argv[]) {
 		args[i] = (char *)(args_buf + i);
 	// NOTE: this is basically a long way around doing malloc
 
-	pipe_init();
+	redir_init();
+	bool pipe_flag = false; // set to true if you encounter a pipe
 	// TODO: don't output this when you're running a shell script
 	prompt(0);
 
@@ -30,17 +31,21 @@ int main(int argc, char *argv[]) {
 	// stdin read loop
 	while (true) {
 
-		if(!lineread()) { // hitting enter just resets here
-			prompt(0);
-			continue;
-		}
+		// if we're in a pipe, don't read a new line
+		// set the read end
+		if (pipe_flag) pipe_read();
+		else
+			while (!lineread()) // hitting enter just resets here
+				prompt(0);
 
 		// first token has to be a command
 		tok(root_command);
 		int toki = 1; // token counter.
 
+		pipe_flag = false; // new command, new pipe
+
 		// copy arguments for execv
-		for (; toki < MARGS && tok(args[toki]); toki++) {
+		for (; !pipe_flag && toki < MARGS && tok(args[toki]); toki++) {
 			// check if the token is redirection
 			switch (args[toki][0]) {
 				case '>':
@@ -55,6 +60,11 @@ int main(int argc, char *argv[]) {
 					tok(token);
 					stdin_redir(token);
 					toki--;
+					break;
+				case '|':
+					toki--;
+					pipe_flag = true;
+					pipe_create(); // create a pipe, set stdout
 					break;
 			}
 		}
@@ -73,16 +83,22 @@ int main(int argc, char *argv[]) {
 				// return to stop forking
 				return -err;
 
-			default: // parent
+			default:
 				wait(&exit_val);
+				// TODO: close the write end of the pipe, if there is one
+
 				// we now reset the null value in arguments
 				args[toki] = (char *)args_buf[toki];
 		}
+
 		// reset the parser back to initial state, so new lines are not reading
 		// from the end of old lines
-		reset();
-		pipe_reset(); // what, why this no work ?
-		prompt(exit_val);
+		redir_reset(pipe_flag);
+
+		if (!pipe_flag) {
+			parser_reset();
+			prompt(exit_val);
+		}
 	}
 	return 0;
 }
