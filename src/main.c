@@ -23,7 +23,10 @@ int main(int argc, char *argv[]) {
 	// NOTE: this is basically a long way around doing malloc
 
 	redir_init();
-	bool pipe_flag = false; // set to true if you encounter a pipe
+	bool next_pipe = false, prev_pipe = false;
+	// next pipe tells us if there's a new pipe
+	// prev_pipe tells us if we're already in a pipe
+
 	// TODO: don't output this when you're running a shell script
 	prompt(0);
 
@@ -33,19 +36,21 @@ int main(int argc, char *argv[]) {
 
 		// if we're in a pipe, don't read a new line
 		// set the read end
-		if (pipe_flag) pipe_read();
-		else
+		if (prev_pipe) pipe_read();
+		else {
 			while (!lineread()) // hitting enter just resets here
 				prompt(0);
+			next_pipe = prev_pipe = false;
+		}
 
 		// first token has to be a command
 		tok(root_command);
 		int toki = 1; // token counter.
 
-		pipe_flag = false; // new command, new pipe
+		next_pipe = false; // new command, new pipe
 
 		// copy arguments for execv
-		for (; !pipe_flag && toki < MARGS && tok(args[toki]); toki++) {
+		for (; !next_pipe && toki < MARGS && tok(args[toki]); toki++) {
 			// check if the token is redirection
 			switch (args[toki][0]) {
 				case '>':
@@ -63,7 +68,7 @@ int main(int argc, char *argv[]) {
 					break;
 				case '|':
 					toki--;
-					pipe_flag = true;
+					next_pipe = true;
 					pipe_create(); // create a pipe, set stdout
 					break;
 			}
@@ -91,11 +96,13 @@ int main(int argc, char *argv[]) {
 				args[toki] = (char *)args_buf[toki];
 		}
 
-		// reset the parser back to initial state, so new lines are not reading
-		// from the end of old lines
-		redir_reset(pipe_flag);
+		// what should this function do ?
+		// It needs to close the write end of the current pipe
+		// If there is a previous pipe, we close the read end of it as well no?
+		redir_reset(prev_pipe, next_pipe);
+		prev_pipe = next_pipe;
 
-		if (!pipe_flag) {
+		if (!next_pipe) {
 			parser_reset();
 			prompt(exit_val);
 		}

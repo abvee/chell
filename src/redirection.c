@@ -17,7 +17,7 @@ static int pipes[2][2];
 static int pipei; // know which pipe we're working with
 
 // make all fds original again
-void redir_reset(bool pipe_flag) {
+void redir_reset(bool prev_pipe, bool next_pipe) {
 	int err;
 	// stdout reset
 	if (stdout_openfd) {
@@ -41,12 +41,16 @@ void redir_reset(bool pipe_flag) {
 		}
 	}
 
-	// close the write end of the pipe if we're in one
-	if (pipe_flag) {
+	// close the write end of the next pipe
+	if (next_pipe) {
 		dup2(backup_fds[stdOut], stdOut);
 		close(pipes[pipei][1]);
 	}
-	dup2(backup_fds[stdIn], stdIn);
+	// close read end of previous pipe
+	if (prev_pipe) {
+		dup2(backup_fds[stdIn], stdIn);
+		close(pipes[pipei][0]);
+	}
 }
 
 // open files for redirection
@@ -74,16 +78,15 @@ void stdin_redir(const char* const file) {
 }
 
 void pipe_create(void) {
-	// clear the previous pipe
-	// shift the pipe to a new pipe
+	// change the pipe index when making a new pipe
 	pipei = ~pipei & 1;
 
 	pipe(pipes[pipei]);
-
 	// set write end
 	dup2(pipes[pipei][1], stdOut);
 }
 
+// set stdin to read end of pipe
 void pipe_read(void) {
 	dup2(pipes[pipei][0], stdIn);
 }
