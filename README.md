@@ -2,9 +2,13 @@ Toy shell project
 ## Plans:
 * Interpretter
 * Pipes
-* Redirection
+* alias
+* disown
+* `> file` needs to work
+* fix the parser so you don't need spaces between everything
 ## Credits
-Name: Harshith
+Rest: me
+
 # Requirements
 * A true colour terminal for proper colours. The prompt cannot be changed unless
 you recompile and I'm going to try and make it so you can't change the prompt
