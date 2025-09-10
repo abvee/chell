@@ -46,10 +46,11 @@ void redir_reset(bool prev_pipe, bool next_pipe) {
 		dup2(backup_fds[stdOut], stdOut);
 		close(pipes[pipei][1]);
 	}
+
 	// close read end of previous pipe
 	if (prev_pipe) {
 		dup2(backup_fds[stdIn], stdIn);
-		close(pipes[pipei][0]);
+		close(pipes[~pipei & 1][0]);
 	}
 }
 
