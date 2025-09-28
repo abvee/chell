@@ -8,6 +8,7 @@
 #include "parser.c"
 #include "redirection.c"
 #include "builtins.c"
+#include "debug.h"
 
 int prompt(int exit_value);
 
@@ -15,6 +16,9 @@ char root_command[MLEN]; // buffer for root command
 char args_buf[MARGS][MLEN]; // buffer arguments for command
 
 int main(int argc, char *argv[]) {
+	if (argc > 1) debugf = true; // any arg passed will turn on debug
+
+	debug("Debug mode enabled\n");
 
 	int exit_val = 0; // return value of the previous command
 	char *args[MARGS] = {root_command, NULL};
