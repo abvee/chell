@@ -7,6 +7,7 @@
 #include "constants.h"
 #include "parser.c"
 #include "redirection.c"
+#include "builtins.c"
 
 int prompt(int exit_value);
 
@@ -43,10 +44,33 @@ int main(int argc, char *argv[]) {
 			next_pipe = prev_pipe = false;
 		}
 
-		// first token has to be a command
-		tok(root_command);
-		int toki = 1; // token counter.
 
+		// first token has to be a command
+		int root_len = tok(root_command);
+		printf("%s|%d\n", root_command, root_len);
+		// NOTE: Right now we tokenize first then recompare the length
+		// Complexity is thus O(2n). If the parser can identify the type of the
+		// argument beforehand (builtin, command, redirection, etc), we can
+		// reduce this to O(n).
+		// TODO: Implement ^ in the parser ?
+		// This risks polluting the tokenizer with project specific semantics
+		// instead of being somewhat portable.
+
+		// builtin check
+		switch (builtin_check(root_command, root_len)) {
+			case -1: break; // do nothing
+			case CD:
+				printf("Got here\n");
+				tok(token);
+				chdir(token);
+				// Note: we should check if there are multiple arguments to cd
+				continue; // this allows commands after cd
+			case EXIT: return 0;
+		}
+
+		printf("After builtin check\n");
+
+		int toki = 1; // token counter.
 		next_pipe = false; // new command, new pipe
 
 		// copy arguments for execv
