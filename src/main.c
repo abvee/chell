@@ -47,7 +47,6 @@ int main(int argc, char *argv[]) {
 
 		// first token has to be a command
 		int root_len = tok(root_command);
-		printf("%s|%d\n", root_command, root_len);
 		// NOTE: Right now we tokenize first then recompare the length
 		// Complexity is thus O(2n). If the parser can identify the type of the
 		// argument beforehand (builtin, command, redirection, etc), we can
@@ -60,7 +59,6 @@ int main(int argc, char *argv[]) {
 		switch (builtin_check(root_command, root_len)) {
 			case -1: break; // do nothing
 			case CD:
-				printf("Got here\n");
 				tok(token);
 				chdir(token);
 				// Note: we should check if there are multiple arguments to cd
@@ -68,7 +66,6 @@ int main(int argc, char *argv[]) {
 			case EXIT: return 0;
 		}
 
-		printf("After builtin check\n");
 
 		int toki = 1; // token counter.
 		next_pipe = false; // new command, new pipe
