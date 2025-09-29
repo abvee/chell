@@ -41,20 +41,27 @@ int main(int argc, char *argv[]) {
 
 		// if we're in a pipe, don't read a new line
 		// set the read end
-		if (prev_pipe) pipe_read();
+		if (prev_pipe) {
+			debug("Set stdin to pipe\n");
+			pipe_read();
+		}
 		else {
 			while (!lineread()) // hitting enter just resets here
 				prompt(0);
+			debug("Read new line\n");
 			next_pipe = prev_pipe = false;
 		}
 
 
 		// first token has to be a command
 		int root_len = tok(root_command);
-		// NOTE: Right now we tokenize first then recompare the length
-		// Complexity is thus O(2n). If the parser can identify the type of the
-		// argument beforehand (builtin, command, redirection, etc), we can
-		// reduce this to O(n).
+		debug("Found root command: %s\n", root_command);
+
+		// NOTE: For builtin checking right now we tokenize first then recompare
+		// the length Complexity is thus O(2n). If the parser can identify the
+		// type of the argument beforehand (builtin, command, redirection, etc),
+		// we can reduce this to O(n).
+
 		// TODO: Implement ^ in the parser ?
 		// This risks polluting the tokenizer with project specific semantics
 		// instead of being somewhat portable.
@@ -63,10 +70,17 @@ int main(int argc, char *argv[]) {
 		switch (builtin_check(root_command, root_len)) {
 			case -1: break; // do nothing
 			case CD:
+				debug("Found cd command\n");
 				tok(token);
 				chdir(token);
 				// Note: we should check if there are multiple arguments to cd
-				continue; // this allows commands after cd
+				parser_reset();
+				// this is not good. It doesn't allow for pipes or anything like
+				// that. One could say that we don't need that anyways.... which is
+				// a fair and valid argument, because you can't cd with a pipe. But
+				// what about &&. Surely you would need that
+				prompt(exit_val);
+				continue;
 			case EXIT: return 0;
 		}
 

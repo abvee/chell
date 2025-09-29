@@ -11,9 +11,8 @@ struct {
 };
 
 enum builtin builtin_check(char tok[], int len) {
-	int i = 0;
-	// breaks when builtin matches
-	for (;i < BNUM && (len != builtin_table[i].len || strcmp(tok, builtin_table[i].str)); i++)
-		;
-	return i >= BNUM?-1:builtin_table[i].symbol;
+	for (int i = 0; i < BNUM; i++)
+		if (len == builtin_table[i].len && !strcmp(tok, builtin_table[i].str))
+			return builtin_table[i].symbol;
+	return -1; // this maxes out the enum ?
 }
