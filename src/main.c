@@ -49,12 +49,12 @@ int main(int argc, char *argv[]) {
 			while (!lineread()) // hitting enter just resets here
 				prompt(0);
 			debug("Read a new line\n");
-			next_pipe = prev_pipe = false;
+			prev_pipe = false; // no previous pipe required when new line is read
 		}
 		// first token has to be a command
 		int root_len = tok(root_command);
 		debug("Found root command: %s\n", root_command);
-		next_pipe = false; // new command, new pipe
+		next_pipe = false; // new command, we'll set this when we find a pipe.
 
 		// NOTE: For builtin checking right now we tokenize first then recompare
 		// the length Complexity is thus O(2n). If the parser can identify the
@@ -74,12 +74,10 @@ int main(int argc, char *argv[]) {
 				chdir(token);
 				// Note: we should check if there are multiple arguments to cd
 				parser_reset();
-				// this is not good. It doesn't allow for pipes or anything like
-				// that. One could say that we don't need that anyways.... which is
-				// a fair and valid argument, because you can't cd with a pipe. But
-				// what about &&. Surely you would need that
+				// this makes it so that we can't have anything at all after the cd command
+				// This won't be a problem because right now && doesn't exist''
 				prompt(exit_val);
-				continue;
+				continue; // ignores everything
 			case EXIT: return 0;
 		}
 
