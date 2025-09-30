@@ -10,6 +10,7 @@ int lineread() {
 	// bounds checking
 	if (n >= MLEN)
 		return 0;
+
 	line[n-1] = '\0'; // strip newline
 	return n-1; // return last index, not length
 }

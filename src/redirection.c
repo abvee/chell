@@ -48,9 +48,16 @@ void redir_reset(bool prev_pipe, bool next_pipe) {
 	}
 
 	// close read end of previous pipe
+	// Note that if there's no next pipe, we just close the read end of the
+	// current pipe
+	// If there's another pipe, then pipei has changed, so we close the read end
+	// of the previous pipe
 	if (prev_pipe) {
 		dup2(backup_fds[stdIn], stdIn);
-		close(pipes[~pipei & 1][0]);
+		if (next_pipe)
+			close(pipes[~pipei & 1][0]);
+		else
+			close(pipes[pipei][0]);
 	}
 }
 

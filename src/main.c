@@ -48,14 +48,13 @@ int main(int argc, char *argv[]) {
 		else {
 			while (!lineread()) // hitting enter just resets here
 				prompt(0);
-			debug("Read new line\n");
+			debug("Read a new line\n");
 			next_pipe = prev_pipe = false;
 		}
-
-
 		// first token has to be a command
 		int root_len = tok(root_command);
 		debug("Found root command: %s\n", root_command);
+		next_pipe = false; // new command, new pipe
 
 		// NOTE: For builtin checking right now we tokenize first then recompare
 		// the length Complexity is thus O(2n). If the parser can identify the
@@ -86,8 +85,6 @@ int main(int argc, char *argv[]) {
 
 
 		int toki = 1; // token counter.
-		next_pipe = false; // new command, new pipe
-
 		// copy arguments for execv
 		for (; !next_pipe && toki < MARGS && tok(args[toki]); toki++) {
 			// check if the token is redirection
@@ -109,10 +106,12 @@ int main(int argc, char *argv[]) {
 					toki--;
 					next_pipe = true;
 					pipe_create(); // create a pipe, set stdout
+					debug("Found pipe, set stdout to pipe\n");
 					break;
 			}
 		}
 		args[toki] = NULL;
+		debug("prev_pipe: %s, next_pipe: %s\n", prev_pipe?"true":"false", next_pipe?"true":"false");
 
 		switch (fork()) {
 			case -1:
@@ -120,6 +119,7 @@ int main(int argc, char *argv[]) {
 				return 1;
 
 			case 0: // child
+				debug("Executing command: %s\n", root_command);
 				int err = execvp(root_command, args);
 
 				// it's an error if we get here
@@ -129,19 +129,16 @@ int main(int argc, char *argv[]) {
 
 			default:
 				wait(&exit_val);
-				// TODO: close the write end of the pipe, if there is one
-
 				// we now reset the null value in arguments
 				args[toki] = (char *)args_buf[toki];
 		}
+		debug("Finished executing command: %s\n", root_command);
 
-		// what should this function do ?
-		// It needs to close the write end of the current pipe
-		// If there is a previous pipe, we close the read end of it as well no?
-		redir_reset(prev_pipe, next_pipe);
+		redir_reset(prev_pipe, next_pipe); // reset pipes
 		prev_pipe = next_pipe;
 
 		if (!next_pipe) {
+			debug("End of pipeline, resetting parser and printing prompt\n");
 			parser_reset();
 			prompt(exit_val);
 		}
