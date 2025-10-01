@@ -12,27 +12,42 @@ int lineread() {
 		return 0;
 
 	line[n-1] = '\0'; // strip newline
+	printf("line: %s\n", line);
 	return n-1; // return last index, not length
 }
-
 // return length of buffer. Do the checks for line and buffer length before you
 // enter this function
 
+// return true if it's a breaker
+// does not handle whitespace
+static inline bool
+breaker(char c) {
+	switch (c) {
+		case '|':
+		case '>':
+		case '<':
+		case '\0':
+			return true;
+	}
+	return false;
+}
+
+
 // NOTE: we don't handle newlines here. Assume line doesn't have a new line
 int tok(char *buf) {
-	int bufi = 0; // buffer index
-	while (line[li] && (line[li] == ' ' || line[li]  == '\t'))
+
+	// rid of whitespace
+	while (line[li] && line[li] == ' ' || line[li] == '\t')
 		li++;
 
-	while ((buf[bufi] = line[li]) != '\t' && buf[bufi] != ' ' && buf[bufi] != '\0')
-		bufi++, li++;
-
-	buf[bufi] = '\0'; // account for the whitespace
+	// copy token
+	int bufi = 0;
+	while (line[li] && line[li] != ' ' && line[li] != '\t') {
+		buf[bufi++] = line[li++];
+	}
+	buf[bufi] = '\0';
 	return bufi;
 }
-// TODO: do something else with this tokenizer that does better than whatever
-// this thing is. We're just returning words, so `ls>file` doesn't work, it has
-// to be `ls > file`
 
 void parser_reset() {
 	li = 0; 
