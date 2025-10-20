@@ -78,7 +78,9 @@ int main(int argc, char *argv[]) {
 				// This won't be a problem because right now && doesn't exist''
 				prompt(exit_val);
 				continue; // ignores everything
-			case EXIT: return 0;
+			case EXIT:
+				redir_reset(prev_pipe, next_pipe);
+				return 0;
 		}
 
 
